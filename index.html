@@ -42,17 +42,16 @@
         }
         .chat-header-controls button:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
         
-        /* ==================== MAIN CHAT AREA - OPTIMIZED FOR MOBILE & PC ==================== */
+        /* ==================== MAIN CHAT AREA ==================== */
         .chat-main-area { 
             flex: 1; 
             display: flex; 
             flex-direction: column; 
             background: #020617; 
             overflow: hidden;
-            position: relative;
         }
         
-        /* Chat messages container - Takes maximum space */
+        /* Chat messages container */
         .chat-messages-wrapper {
             flex: 1;
             display: flex;
@@ -66,7 +65,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-height: 0; /* Important for flex child scrolling */
+            min-height: 0;
         }
         
         .chat-messages {
@@ -79,26 +78,27 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            min-height: 0; /* Enable scrolling */
-            max-height: calc(100vh - 180px); /* Dynamic height calculation */
+            min-height: 0;
         }
         
-        /* ==================== INPUT AREA - OPTIMIZED SPACING ==================== */
+        /* ==================== INPUT AREA - MOBILE FRIENDLY ==================== */
         .chat-input-container {
             background: #0f172a;
             border-top: 2px solid #1e293b;
-            padding: 15px;
+            padding: 12px 15px;
             margin: 0;
             flex-shrink: 0;
+            position: relative;
+            z-index: 10;
         }
         
         .chat-input-area {
             display: flex; 
-            gap: 12px; 
+            gap: 10px; 
             align-items: center;
+            width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            width: 100%;
         }
         
         .message { 
@@ -186,10 +186,11 @@
             border: 2px solid #334155; 
             background: #020617;
             color: white; 
-            font-size: 15px; 
+            font-size: 16px; /* Larger for mobile */
             outline: none; 
             transition: all 0.3s ease;
-            min-width: 50px; /* Prevents shrinking too much on mobile */
+            min-width: 60px; /* Prevents shrinking */
+            -webkit-appearance: none; /* Removes iOS shadow */
         }
         .chat-input:focus { 
             border-color: #0ea5e9; 
@@ -210,10 +211,16 @@
             transition: all 0.3s ease; 
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
             flex-shrink: 0;
+            /* Ensure button is always visible */
+            position: relative;
+            z-index: 2;
         }
         .send-button:hover { 
             transform: scale(1.1); 
             box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4); 
+        }
+        .send-button:active {
+            transform: scale(0.95);
         }
         
         .ai-status {
@@ -398,12 +405,11 @@
             50% { opacity: 0.7; }
         }
         
-        /* ==================== ENHANCED MOBILE RESPONSIVENESS ==================== */
+        /* ==================== MOBILE OPTIMIZATIONS ==================== */
         @media (max-width: 768px) {
             .chat-header { 
                 padding: 12px 15px; 
                 min-height: 60px; 
-                flex-wrap: wrap;
             }
             .chat-header-icon { 
                 width: 40px; 
@@ -419,9 +425,12 @@
                 line-height: 1.2;
             }
             .chat-header-controls {
-                margin-top: 5px;
-                width: 100%;
-                justify-content: center;
+                gap: 8px;
+            }
+            .chat-header-controls button {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
             }
             
             .chat-messages-wrapper { 
@@ -429,26 +438,37 @@
             }
             .chat-messages { 
                 padding: 15px 12px; 
-                max-height: calc(100vh - 170px); /* Adjusted for mobile */
+                gap: 12px;
             }
             .message { 
-                max-width: 95%; 
+                max-width: 92%; 
                 font-size: 14px; 
                 padding: 12px 16px; 
             }
+            
+            /* IMPORTANT: Mobile Input Area Fix */
             .chat-input-container { 
-                padding: 12px 10px; 
+                padding: 10px 12px; 
+            }
+            .chat-input-area {
+                gap: 8px;
             }
             .chat-input { 
                 padding: 12px 16px; 
-                font-size: 14px; 
-                min-height: 48px;
+                font-size: 16px; /* Larger font for mobile typing */
+                height: 50px;
+                border-radius: 25px;
             }
             .send-button { 
-                width: 48px; 
-                height: 48px; 
+                width: 50px; 
+                height: 50px; 
                 font-size: 18px; 
+                /* Make sure button is always visible */
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
             }
+            
             .info-grid { 
                 grid-template-columns: 1fr; 
                 gap: 8px;
@@ -469,12 +489,17 @@
             }
             .info-title {
                 font-size: 14px;
-                flex-direction: column;
-                gap: 5px;
+            }
+            
+            /* Hide AI status on very small screens when keyboard is open */
+            @media (max-height: 500px) {
+                .ai-status {
+                    display: none;
+                }
             }
         }
         
-        /* ==================== SMALL PHONES ==================== */
+        /* ==================== SMALL PHONES (iPhone SE etc) ==================== */
         @media (max-width: 480px) {
             .chat-header-text h1 { 
                 font-size: 16px; 
@@ -484,26 +509,37 @@
             }
             .chat-messages { 
                 padding: 12px 10px; 
-                gap: 12px;
+                gap: 10px;
             }
             .message { 
-                max-width: 98%; 
+                max-width: 95%; 
                 font-size: 13.5px; 
                 padding: 10px 14px; 
+            }
+            
+            /* Ensure input area works perfectly on small phones */
+            .chat-input-container {
+                padding: 8px 10px;
             }
             .chat-input { 
                 padding: 10px 14px; 
-                font-size: 13.5px; 
-                min-height: 44px;
+                font-size: 16px; 
+                height: 48px;
             }
             .send-button { 
-                width: 44px; 
-                height: 44px; 
-                font-size: 16px; 
+                width: 48px; 
+                height: 48px; 
+                font-size: 17px; 
+                /* Force display */
+                display: flex !important;
+                visibility: visible !important;
             }
+            
             .ai-status { 
                 font-size: 10px; 
                 padding: 5px 10px; 
+                bottom: 5px;
+                right: 5px;
             }
             .info-grid { 
                 gap: 6px;
@@ -514,12 +550,56 @@
             }
         }
         
-        /* ==================== LARGE SCREENS ==================== */
+        /* ==================== VERY SMALL PHONES ==================== */
+        @media (max-width: 360px) {
+            .chat-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .chat-header-controls {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 5px;
+            }
+            .chat-input-area {
+                gap: 6px;
+            }
+            .chat-input {
+                font-size: 15px;
+                padding: 10px 12px;
+            }
+            .send-button {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+        }
+        
+        /* ==================== PC/LAPTOP OPTIMIZATIONS ==================== */
+        @media (min-width: 769px) {
+            .chat-messages {
+                max-width: 1000px;
+                margin: 0 auto;
+                width: 100%;
+            }
+            .chat-input-area {
+                max-width: 1000px;
+            }
+            
+            /* PC-specific hover effects */
+            .send-button:hover {
+                transform: scale(1.1);
+            }
+            .chat-header-controls button:hover {
+                transform: translateY(-2px);
+            }
+        }
+        
+        /* ==================== LARGE DESKTOPS ==================== */
         @media (min-width: 1200px) {
             .chat-messages {
                 max-width: 1200px;
-                margin: 0 auto;
-                width: 100%;
             }
             .chat-input-area {
                 max-width: 1200px;
@@ -536,8 +616,38 @@
                 transition: transform 0.1s ease;
             }
             
+            /* Prevent zoom on iOS input focus */
             .chat-input {
-                font-size: 16px; /* Prevents iOS zoom on focus */
+                font-size: 16px;
+            }
+            
+            /* Better touch targets */
+            .chat-header-controls button,
+            .send-button {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+        
+        /* ==================== SAFARI SPECIFIC FIXES ==================== */
+        @supports (-webkit-touch-callout: none) {
+            .chat-input {
+                font-size: 16px;
+            }
+            .send-button {
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+        
+        /* ==================== KEYBOARD OPEN FIX FOR MOBILE ==================== */
+        @media (max-height: 600px) {
+            .chat-messages {
+                max-height: 60vh;
+            }
+            .chat-input-container {
+                position: sticky;
+                bottom: 0;
+                background: #0f172a;
             }
         }
     </style>
@@ -594,7 +704,7 @@
                 </div>
             </div>
             
-            <!-- ==================== INPUT AREA - OPTIMIZED ==================== -->
+            <!-- ==================== INPUT AREA - MOBILE FIXED ==================== -->
             <div class="chat-input-container">
                 <div class="chat-input-area">
                     <input type="text" class="chat-input" id="userInput" 
@@ -1119,22 +1229,56 @@
             window.askQuestion = askQuestion;
             window.handleKeyPress = handleKeyPress;
             
-            // Add visual feedback on hover
-            document.querySelectorAll('button').forEach(btn => {
-                btn.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
+            // Add visual feedback on hover (PC only)
+            if (window.matchMedia("(min-width: 769px)").matches) {
+                document.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-2px)';
+                    });
+                    btn.addEventListener('mouseleave', function() {
+                        this.style.transform = 'translateY(0)';
+                    });
                 });
-                btn.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
-            });
+            }
             
-            // Handle window resize for better mobile experience
+            // Handle mobile keyboard appearance
+            let viewportHeight = window.innerHeight;
+            let viewportWidth = window.innerWidth;
+            
             window.addEventListener('resize', function() {
+                // Check if keyboard is open (height decreased significantly)
+                if (window.innerHeight < viewportHeight * 0.7) {
+                    // Keyboard is open, ensure send button is visible
+                    sendButton.style.display = 'flex';
+                    sendButton.style.visibility = 'visible';
+                    sendButton.style.opacity = '1';
+                }
+                
                 // Force scroll to bottom on resize
                 setTimeout(() => {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }, 100);
+                
+                viewportHeight = window.innerHeight;
+                viewportWidth = window.innerWidth;
+            });
+            
+            // Ensure send button is always visible on mobile
+            function ensureSendButtonVisible() {
+                sendButton.style.display = 'flex';
+                sendButton.style.visibility = 'visible';
+                sendButton.style.opacity = '1';
+            }
+            
+            // Check regularly on mobile
+            if (window.matchMedia("(max-width: 768px)").matches) {
+                setInterval(ensureSendButtonVisible, 1000);
+                ensureSendButtonVisible();
+            }
+            
+            // Focus input when clicking anywhere on chat
+            chatMessages.addEventListener('click', function() {
+                userInput.focus();
             });
         }
 
