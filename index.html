@@ -2,1340 +2,561 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Playcode Smart AI Assistant</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Playcode AI + Gemini</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f1f5f9;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+        :root {
+            --bg-color: #131314;
+            --surface-color: #1e1f20;
+            --surface-hover: #333537;
+            --text-primary: #e3e3e3;
+            --text-secondary: #c4c7c5;
+            --accent-blue: #669df6;
+            --border-color: #444746;
+            --font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        .chat-container { 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-        }
-        .chat-header {
-            background: linear-gradient(90deg, #0ea5e9 0%, #2563eb 100%); 
-            padding: 12px 20px;
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            min-height: 60px;
-            flex-shrink: 0;
-            z-index: 100;
-        }
-        .chat-header-info { display: flex; align-items: center; gap: 12px; }
-        .chat-header-icon {
-            background: rgba(255, 255, 255, 0.2); width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-        }
-        .chat-header-text h1 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
-        .chat-header-text p { font-size: 12px; opacity: 0.95; font-weight: 500; }
-        .chat-header-controls { display: flex; gap: 8px; }
-        .chat-header-controls button {
-            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
-            width: 36px; height: 36px; border-radius: 8px; color: white; cursor: pointer;
-            transition: all 0.3s ease; font-size: 16px;
-        }
-        .chat-header-controls button:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
-        
-        /* ==================== MAIN CHAT AREA - FULL SCREEN SCROLL ==================== */
-        .chat-main-area { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background: #020617; 
-            overflow: hidden;
-            position: relative;
-        }
-        
-        /* Chat messages container - Now scrolls entire screen */
-        .chat-messages-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            padding: 10px;
-            height: calc(100vh - 130px); /* Full screen minus header and input */
-        }
-        
-        .chat-messages-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: #0f172a;
-            border-radius: 12px;
-            border: 2px solid #1e293b;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: 0;
-            height: 100%;
-        }
-        
-        /* ==================== INPUT AREA - MOBILE FIXED ==================== */
-        .chat-input-container {
-            background: #0f172a;
-            border-top: 2px solid #1e293b;
-            padding: 10px 12px;
+
+        * {
             margin: 0;
-            flex-shrink: 0;
-            z-index: 50;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family);
         }
-        
-        .chat-input-area {
-            display: flex; 
-            gap: 8px; 
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
             align-items: center;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
+            padding: 16px 24px;
+            background: var(--bg-color);
+            z-index: 10;
         }
-        
-        .message { 
-            max-width: 85%; 
-            padding: 12px 16px; 
-            border-radius: 14px; 
-            animation: fadeIn 0.4s ease; 
-            line-height: 1.5; 
-            font-size: 14px; 
-            position: relative; 
-            word-wrap: break-word;
+
+        .header-brand {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
         }
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(15px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        .message-bot { 
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%); 
-            align-self: flex-start; 
-            border-left: 4px solid #0ea5e9; 
-        }
-        .message-user { 
-            background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%); 
-            align-self: flex-end; 
-            border-right: 4px solid #38bdf8; 
-        }
-        .message-content { 
-            line-height: 1.5; 
-            overflow-wrap: break-word;
-            word-break: break-word;
-        }
-        .message-time { 
-            font-size: 10px; 
-            opacity: 0.7; 
-            margin-top: 6px; 
-            text-align: right; 
-            font-weight: 500; 
-        }
-        
-        .typing-indicator {
-            display: none; 
-            align-self: flex-start; 
-            background: #1e293b; 
-            padding: 12px 16px; 
-            border-radius: 14px;
-            margin-bottom: 8px; 
-            border-left: 4px solid #0ea5e9; 
-            width: 110px;
-        }
-        .typing-indicator.active { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 5px; 
-        }
-        .typing-dot {
-            width: 7px; 
-            height: 7px; 
-            background: #0ea5e9; 
-            border-radius: 50%; 
-            animation: typingBounce 1.4s infinite ease-in-out;
-        }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        .typing-dot:nth-child(3) { animation-delay: 0s; }
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        .typing-text { 
-            font-size: 12px; 
-            color: #94a3b8; 
-            font-weight: 500; 
-            animation: pulseText 1.5s infinite alternate;
-        }
-        @keyframes pulseText {
-            from { opacity: 0.6; }
-            to { opacity: 1; }
-        }
-        
-        /* ========== SEND BUTTON - MOBILE FIXED ========== */
-        .chat-input {
-            flex: 1; 
-            padding: 12px 16px; 
-            border-radius: 25px; 
-            border: 2px solid #334155; 
-            background: #020617;
-            color: white; 
-            font-size: 15px; 
-            outline: none; 
-            transition: all 0.3s ease;
-            min-width: 0; /* Allows shrinking */
-            -webkit-appearance: none;
-        }
-        .chat-input:focus { 
-            border-color: #0ea5e9; 
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); 
-        }
-        
-        .send-button {
-            background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%); 
-            border: none; 
-            width: 46px; 
-            height: 46px;
-            border-radius: 50%; 
-            color: white; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            font-size: 18px; 
-            transition: all 0.3s ease; 
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            flex-shrink: 0;
-            /* Force visibility on mobile */
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        .send-button:hover { 
-            transform: scale(1.1); 
-            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4); 
-        }
-        .send-button:active {
-            transform: scale(0.95);
-        }
-        
-        .ai-status {
-            position: fixed; 
-            bottom: 12px; 
-            right: 12px; 
-            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-            padding: 6px 12px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: 600; 
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
-            z-index: 100; 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            animation: statusPulse 3s infinite;
-        }
-        @keyframes statusPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .ai-status i { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        
-        .search-status {
-            display: none; 
-            align-self: flex-start; 
-            background: #1e293b; 
-            padding: 10px 14px; 
-            border-radius: 10px;
-            margin-bottom: 8px; 
-            border-left: 4px solid #10b981; 
-            font-size: 12px; 
-            color: #94a3b8;
-            animation: searchPulse 2s infinite alternate;
-        }
-        @keyframes searchPulse {
-            from { opacity: 0.8; }
-            to { opacity: 1; }
-        }
-        .search-status.active { 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-        }
-        .search-status i { 
-            color: #10b981; 
-            animation: spin 2s infinite linear; 
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .web-search-badge {
-            display: inline-block; 
-            background: linear-gradient(90deg, #10b981 0%, #059669 100%); 
-            color: white;
-            padding: 2px 6px; 
-            border-radius: 8px; 
-            font-size: 9px; 
-            font-weight: 600; 
-            margin-bottom: 4px;
-            animation: badgePulse 2s infinite;
-        }
-        @keyframes badgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .quick-questions {
-            background: #1e293b; 
-            padding: 10px; 
-            border-radius: 10px; 
-            margin-top: 6px; 
-            border-left: 4px solid #8b5cf6;
-            animation: slideIn 0.5s ease;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .quick-questions-title { 
-            font-size: 11px; 
-            font-weight: 600; 
-            color: #8b5cf6; 
-            margin-bottom: 6px; 
-        }
-        .quick-question-btn {
-            background: #0f172a; 
-            border: 1px solid #334155; 
-            color: #94a3b8; 
-            padding: 4px 8px;
-            border-radius: 5px; 
-            margin: 2px; 
-            font-size: 10px; 
-            cursor: pointer; 
-            transition: all 0.2s;
-        }
-        .quick-question-btn:hover { 
-            background: #2563eb; 
-            color: white; 
-            border-color: #2563eb; 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-        }
-        
-        .info-container {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
-            padding: 15px; 
-            border-radius: 10px;
-            margin-top: 6px; 
-            border-left: 4px solid #0ea5e9; 
-            border-right: 4px solid #0ea5e9;
-            animation: fadeInUp 0.6s ease;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .info-title {
-            font-size: 14px; 
-            font-weight: 700; 
-            color: #0ea5e9; 
-            margin-bottom: 10px; 
-            text-align: center;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 6px;
-        }
-        .info-grid {
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .info-question-btn {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
-            border: none; 
-            color: white;
-            padding: 8px 10px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
-            text-align: left; 
-            font-size: 11px; 
-            font-weight: 500; 
-            border-left: 3px solid #0ea5e9;
-            animation: buttonAppear 0.4s ease forwards;
-            opacity: 0; 
-            transform: translateY(10px);
-        }
-        @keyframes buttonAppear {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .info-question-btn:hover {
-            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); 
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4);
-        }
-        .info-footer {
-            text-align: center; 
-            font-size: 9px; 
-            color: #94a3b8; 
-            margin-top: 10px; 
-            padding-top: 6px;
-            border-top: 1px solid #334155; 
-            animation: fadeIn 1s ease 0.5s both;
-        }
-        
-        /* ==================== SCROLLBAR ==================== */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb { 
-            background: linear-gradient(180deg, #0ea5e9 0%, #2563eb 100%); 
-            border-radius: 3px;
-        }
-        
-        /* ==================== MOBILE OPTIMIZATIONS ==================== */
-        @media (max-width: 768px) {
-            body {
-                overflow: auto;
-                height: auto;
-                min-height: 100vh;
-            }
-            
-            .chat-container {
-                height: 100vh;
-                min-height: 100vh;
-                overflow-y: auto;
-            }
-            
-            .chat-header { 
-                padding: 10px 12px; 
-                min-height: 55px; 
-                position: sticky;
-                top: 0;
-            }
-            .chat-header-icon { 
-                width: 36px; 
-                height: 36px; 
-                font-size: 18px; 
-            }
-            .chat-header-text h1 { 
-                font-size: 16px; 
-            }
-            .chat-header-text p { 
-                font-size: 11px; 
-            }
-            .chat-header-controls {
-                gap: 6px;
-            }
-            .chat-header-controls button {
-                width: 34px;
-                height: 34px;
-                font-size: 15px;
-            }
-            
-            .chat-messages-wrapper { 
-                padding: 8px; 
-                height: calc(100vh - 120px);
-                min-height: calc(100vh - 120px);
-                overflow-y: auto;
-            }
-            
-            .chat-messages { 
-                padding: 12px 10px; 
-                gap: 10px;
-            }
-            .message { 
-                max-width: 90%; 
-                font-size: 13.5px; 
-                padding: 10px 14px; 
-            }
-            
-            /* MOBILE INPUT FIX - SEND BUTTON ALWAYS VISIBLE */
-            .chat-input-container { 
-                padding: 8px 10px; 
-                position: sticky;
-                bottom: 0;
-                background: #0f172a;
-            }
-            .chat-input-area {
-                gap: 6px;
-            }
-            .chat-input { 
-                padding: 10px 14px; 
-                font-size: 15px; 
-                height: 44px;
-                border-radius: 22px;
-            }
-            .send-button { 
-                width: 44px; 
-                height: 44px; 
-                font-size: 17px; 
-                /* FORCE VISIBLE ON MOBILE */
-                display: flex !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%);
-            }
-            
-            .info-grid { 
-                grid-template-columns: 1fr; 
-                gap: 6px;
-            }
-            .info-question-btn {
-                padding: 10px 12px;
-                font-size: 12px;
-            }
-            .typing-indicator { 
-                width: 100px; 
-                padding: 10px 14px; 
-            }
-            .ai-status { 
-                bottom: 8px; 
-                right: 8px; 
-                font-size: 11px; 
-                padding: 5px 10px; 
-            }
-            .info-title {
-                font-size: 13px;
-            }
-        }
-        
-        /* ==================== SMALL PHONES ==================== */
-        @media (max-width: 480px) {
-            .chat-header-text h1 { 
-                font-size: 15px; 
-            }
-            .chat-header-text p { 
-                font-size: 10px; 
-            }
-            .chat-messages-wrapper {
-                padding: 6px;
-            }
-            .chat-messages { 
-                padding: 10px 8px; 
-                gap: 8px;
-            }
-            .message { 
-                max-width: 95%; 
-                font-size: 13px; 
-                padding: 9px 12px; 
-            }
-            
-            /* Ensure input area works perfectly on small phones */
-            .chat-input-container {
-                padding: 6px 8px;
-            }
-            .chat-input { 
-                padding: 9px 12px; 
-                font-size: 14px; 
-                height: 42px;
-            }
-            .send-button { 
-                width: 42px; 
-                height: 42px; 
-                font-size: 16px; 
-                /* Force display on very small screens */
-                display: flex !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-            }
-            
-            .ai-status { 
-                font-size: 10px; 
-                padding: 4px 8px; 
-                bottom: 6px;
-                right: 6px;
-            }
-            .info-grid { 
-                gap: 5px;
-            }
-            .info-question-btn {
-                padding: 8px 10px;
-                font-size: 11px;
-            }
-        }
-        
-        /* ==================== VERY SMALL PHONES ==================== */
-        @media (max-width: 360px) {
-            .chat-header {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .chat-header-controls {
-                width: 100%;
-                justify-content: center;
-                margin-top: 4px;
-            }
-            .chat-input-area {
-                gap: 5px;
-            }
-            .chat-input {
-                font-size: 14px;
-                padding: 8px 12px;
-            }
-            .send-button {
-                width: 40px;
-                height: 40px;
-                font-size: 15px;
-            }
-            
-            /* Hide AI status on very small screens */
-            .ai-status {
-                display: none;
-            }
-        }
-        
-        /* ==================== PC/LAPTOP OPTIMIZATIONS ==================== */
-        @media (min-width: 769px) {
-            .chat-messages-wrapper {
-                max-width: 1000px;
-                margin: 0 auto;
-                width: 100%;
-            }
-            .chat-input-area {
-                max-width: 1000px;
-            }
-            
-            /* PC-specific hover effects */
-            .send-button:hover {
-                transform: scale(1.1);
-            }
-            .chat-header-controls button:hover {
-                transform: translateY(-2px);
-            }
-        }
-        
-        /* ==================== LARGE DESKTOPS ==================== */
-        @media (min-width: 1200px) {
-            .chat-messages-wrapper {
-                max-width: 1200px;
-            }
-            .chat-input-area {
-                max-width: 1200px;
-            }
-        }
-        
-        /* ==================== TOUCH DEVICE OPTIMIZATIONS ==================== */
-        @media (hover: none) and (pointer: coarse) {
-            .chat-header-controls button:active,
-            .send-button:active,
-            .info-question-btn:active,
-            .quick-question-btn:active {
-                transform: scale(0.95);
-                transition: transform 0.1s ease;
-            }
-            
-            /* Prevent zoom on iOS input focus */
-            .chat-input {
-                font-size: 16px;
-            }
-            
-            /* Better touch targets */
-            .chat-header-controls button,
-            .send-button {
-                min-height: 44px;
-                min-width: 44px;
-            }
-            
-            /* Make everything scrollable on touch */
-            .chat-messages {
-                -webkit-overflow-scrolling: touch;
-            }
-        }
-        
-        /* ==================== SAFARI SPECIFIC FIXES ==================== */
-        @supports (-webkit-touch-callout: none) {
-            .chat-input {
-                font-size: 16px;
-            }
-            .send-button {
-                -webkit-tap-highlight-color: transparent;
-            }
-        }
-        
-        /* ==================== KEYBOARD OPEN FIX FOR MOBILE ==================== */
-        @media (max-height: 600px) {
-            .chat-messages-wrapper {
-                height: calc(100vh - 110px);
-            }
-            .chat-input-container {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: #0f172a;
-                border-top: 2px solid #1e293b;
-            }
-        }
-        
-        /* ==================== FULL SCREEN SCROLL FIX ==================== */
-        .full-screen-scroll {
+
+        /* --- Chat Area --- */
+        .chat-container {
+            flex: 1;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            scroll-behavior: smooth;
+            padding-bottom: 180px; /* Space for large input area */
         }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+            max-width: 850px;
+            margin: 0 auto;
+            gap: 16px;
+        }
+
+        .message-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bot-avatar svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--accent-blue);
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            color: var(--text-primary);
+        }
+
+        .message-row.user .message-bubble {
+            background-color: var(--surface-color);
+            padding: 12px 20px;
+            border-radius: 24px;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* --- Markdown Styling --- */
+        .message-bubble pre {
+            background-color: #1e1e1e;
+            padding: 16px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 16px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .message-bubble code {
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+
+        .message-bubble p { margin-bottom: 12px; }
+        .message-bubble p:last-child { margin-bottom: 0; }
+        .message-bubble ul, .message-bubble ol { margin-left: 24px; margin-bottom: 12px; }
+        .error-msg { color: #f28b82; font-weight: 500; }
+
+        /* --- Custom Rotating Sparkle Loader --- */
+        .custom-loader-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .rotating-sparkle {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            animation: spin 2s linear infinite;
+        }
+
+        .rotating-sparkle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 14px;
+            height: 14px;
+            background-color: var(--accent-blue);
+            transform: translate(-50%, -50%) rotate(45deg);
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+        }
+
+        .rotating-sparkle::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            border-top: 3px solid var(--accent-blue);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 100% 0 0 0;
+            transform: translate(-2px, -2px);
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- Gemini Input Area Layout --- */
+        .input-container-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(19,19,20,0) 0%, var(--bg-color) 20%);
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-box-gemini {
+            background-color: var(--surface-color);
+            border-radius: 32px;
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 16px;
+            border: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .input-box-gemini:focus-within {
+            background-color: #282a2c;
+        }
+
+        .input-box-gemini textarea {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            padding: 8px 8px 16px 8px;
+            resize: none;
+            max-height: 200px;
+            min-height: 24px;
+            outline: none;
+        }
+
+        .input-box-gemini textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .input-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+
+        .toolbar-btn i { font-size: 18px; }
+        .toolbar-btn:hover { background-color: rgba(255,255,255,0.05); color: var(--text-primary); }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            pointer-events: none;
+        }
+
+        .send-btn i { font-size: 20px; }
+        .send-btn.active { color: var(--text-primary); pointer-events: all; }
+        .send-btn.active:hover { background-color: rgba(255,255,255,0.1); }
+
+        .footer-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #444746; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5f6368; }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <div class="chat-header-icon"><i class="fas fa-brain"></i></div>
-                <div class="chat-header-text">
-                    <h1>Playcode Smart AI Assistant</h1>
-                    <p>Type "info" to see all Playcode questions</p>
-                </div>
-            </div>
-            <div class="chat-header-controls">
-                <button id="clearChatBtn" title="Clear Chat"><i class="fas fa-trash"></i></button>
-                <button id="helpBtn" title="Help"><i class="fas fa-question-circle"></i></button>
-                <button id="infoBtn" title="Show Info"><i class="fas fa-info-circle"></i></button>
-            </div>
+
+    <div class="header">
+        <div class="header-brand">Playcode AI + Gemini</div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
         </div>
-        
-        <div class="chat-main-area">
-            <!-- ==================== CHAT MESSAGES CONTAINER ==================== -->
-            <div class="chat-messages-wrapper" id="messagesWrapper">
-                <div class="chat-messages-container">
-                    <div class="chat-messages" id="chatMessages">
-                        <!-- Clean Initial Message -->
-                        <div class="message message-bot">
-                            <div class="message-content">
-                                🤖 <strong>Hello! How may I help you today?</strong><br><br>
-                                I'm your Playcode Smart AI Assistant. I can help you with:<br>
-                                • Playcode services and redeem codes<br>
-                                • General questions and conversations<br>
-                                • Latest information through web search<br><br>
-                                <strong>Type "info" to see all available Playcode questions!</strong>
-                            </div>
-                            <div class="message-time">Just now</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Search Status -->
-                    <div class="search-status" id="searchStatus">
-                        <i class="fas fa-search"></i>
-                        <span id="searchText">Processing your request...</span>
-                    </div>
-                    
-                    <!-- Typing Indicator -->
-                    <div class="typing-indicator" id="typingIndicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-text">Thinking...</div>
-                    </div>
-                </div>
-            </div>
+
+    <div class="input-container-wrapper">
+        <div class="input-box-gemini">
+            <textarea id="userInput" rows="1" placeholder="Ask Playcode AI..." oninput="autoResize(this)"></textarea>
             
-            <!-- ==================== INPUT AREA - MOBILE FIXED ==================== -->
-            <div class="chat-input-container">
-                <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="userInput" 
-                           placeholder="Type 'info' to see all Playcode questions, or ask anything..." 
-                           onkeypress="handleKeyPress(event)" autocomplete="off" autofocus>
-                    <button class="send-button" id="sendButton"><i class="fas fa-paper-plane"></i></button>
+            <div class="input-toolbar">
+                <div class="toolbar-left">
+                    <button class="toolbar-btn" onclick="clearChat()" title="Clear Chat"><i class="fas fa-plus"></i></button>
+                    <button class="toolbar-btn"><i class="fas fa-sliders-h"></i> Tools</button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="toolbar-btn">Pro <i class="fas fa-chevron-down" style="font-size: 12px;"></i></button>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <div class="ai-status">
-            <i class="fas fa-circle"></i> 2-Second Responses
-        </div>
+        <div class="footer-text">Playcode AI + Gemini can make mistakes. Consider verifying important information.</div>
     </div>
 
     <script>
-        // ==================== ENHANCED PLAYCODE KNOWLEDGE ====================
+        // ==========================================
+        // SYSTEM CONFIGURATION & KNOWLEDGE
+        // ==========================================
+        
+        // BASS YAHAN APNI SAMBANOVA API KEY DAAL DO 
+        const API_KEY = "8c685edf-31bb-4537-bab3-8cac6d5425e3"; 
+        
+        const API_URL = "https://api.sambanova.ai/v1/chat/completions";
+        
         const playcodeKnowledge = {
-            "what is this website": {
-                answer: "This website provides Google Play redeem codes with a 16% discount. Users can request and manage gift codes using the Playcode Management system. The platform is designed to be simple, secure, and user-friendly.",
-                keywords: ["website", "playcode", "google play", "redeem code", "discount", "gift card"],
-                displayName: "What is this website?"
-            },
-            "how does the redeem code work": {
-                answer: "Open the Google Play Store, tap your profile icon, go to Payments & subscriptions, select Redeem code, enter the code, and confirm. The balance will be added instantly.",
-                keywords: ["redeem", "how to redeem", "google play redeem", "redeem steps"],
-                displayName: "How does the redeem code work?"
-            },
-            "is this service free": {
-                answer: "No, this service is not free. We offer a 16% discount on Google Play redeem codes. Some premium tools like media and video players are available for free on our homepage.",
-                keywords: ["free", "price", "cost", "discount", "charges"],
-                displayName: "Is this service free?"
-            },
-            "how many times can i redeem a code": {
-                answer: "Each redeem code can be used only one time. After successful redemption, the code becomes invalid.",
-                keywords: ["one time", "reuse", "redeem limit"],
-                displayName: "How many times can I redeem a code?"
-            },
-            "what is the code validity period": {
-                answer: "Each redeem code is valid for one month from the date it is issued.",
-                keywords: ["expiry", "validity", "code expiration"],
-                displayName: "What is the code validity period?"
-            },
-            "is login required to use this website": {
-                answer: "Your account is automatically detected using your registered email. To create a new account, you must contact an agent via email.",
-                keywords: ["login", "sign up", "account", "registration"],
-                displayName: "Is login required to use this website?"
-            },
-            "how can i create an account": {
-                answer: "To create an account, please contact our agent by sending an email to playcodeagent@gmail.com.",
-                keywords: ["create account", "register", "email support"],
-                displayName: "How can I create an account?"
-            },
-            "which platforms are supported": {
-                answer: "Currently, this service supports Google Play Store only.",
-                keywords: ["platform", "supported", "google play store"],
-                displayName: "Which platforms are supported?"
-            },
-            "is playcode official": {
-                answer: "Yes, this is Playcode Official.",
-                keywords: ["official", "authentic", "real", "verified"],
-                displayName: "Is Playcode official?"
-            },
-            "what should i do if my code is not working": {
-                answer: "If your redeem code is not working, please email playcodeagent@gmail.com with complete details.",
-                keywords: ["code not working", "error", "invalid code", "help"],
-                displayName: "What should I do if my code is not working?"
-            },
-            "how long does redemption take": {
-                answer: "Redemption is instant. Once entered correctly, the balance is added immediately to your Google Play account.",
-                keywords: ["time", "instant", "delay", "processing"],
-                displayName: "How long does redemption take?"
-            },
-            "can i use the code on multiple devices": {
-                answer: "No. Once redeemed, the code is linked to a single Google Play account and cannot be reused on another device.",
-                keywords: ["multiple devices", "same account", "reuse"],
-                displayName: "Can I use the code on multiple devices?"
-            },
-            "are refunds available": {
-                answer: "No refunds are provided once a redeem code has been issued or used.",
-                keywords: ["refund", "return", "money back"],
-                displayName: "Are refunds available?"
-            },
-            "is my data safe on this website": {
-                answer: "Yes, we prioritize user privacy and handle all data securely.",
-                keywords: ["privacy", "data safety", "secure"],
-                displayName: "Is my data safe on this website?"
-            },
-            "can i request multiple codes": {
-                answer: "Yes, multiple requests can be made, but each code will be issued separately.",
-                keywords: ["multiple codes", "bulk", "more than one"],
-                displayName: "Can I request multiple codes?"
-            },
-            "do codes work in all countries": {
-                answer: "Redeem codes work only in regions supported by Google Play. Regional restrictions may apply.",
-                keywords: ["country", "region", "international"],
-                displayName: "Do codes work in all countries?"
-            },
-            "what payment methods are accepted": {
-                answer: "Payment methods depend on current availability and will be shared during the request process.",
-                keywords: ["payment", "pay", "method", "transaction"],
-                displayName: "What payment methods are accepted?"
-            },
-            "can i cancel my request": {
-                answer: "Once a redeem code is generated, cancellation is not possible.",
-                keywords: ["cancel", "stop", "request cancel"],
-                displayName: "Can I cancel my request?"
-            },
-            "are there daily limits": {
-                answer: "Yes, daily limits may apply depending on system availability.",
-                keywords: ["limit", "daily limit", "restriction"],
-                displayName: "Are there daily limits?"
-            },
-            "will there be future updates": {
-                answer: "Yes, the website is under continuous development and receives weekly updates to improve features and performance.",
-                keywords: ["updates", "new features", "future"],
-                displayName: "Will there be future updates?"
-            }
+            "what is this website": "This website provides Google Play redeem codes with a 16% discount. Users can request and manage gift codes using the Playcode Management system.",
+            "how does the redeem code work": "Open the Google Play Store, tap your profile icon, go to Payments & subscriptions, select Redeem code, enter the code, and confirm. The balance will be added instantly.",
+            "is this service free": "No, this service is not free. We offer a 16% discount on Google Play redeem codes.",
+            "how many times can i redeem a code": "Each redeem code can be used only one time. After successful redemption, the code becomes invalid.",
+            "what is the code validity period": "Each redeem code is valid for one month from the date it is issued.",
+            "is login required to use this website": "Your account is automatically detected using your registered email. To create a new account, you must contact an agent via email.",
+            "how can i create an account": "To create an account, please contact our agent by sending an email to playcodeagent@gmail.com.",
+            "which platforms are supported": "Currently, this service supports Google Play Store only.",
+            "is playcode official": "Yes, this is Playcode Official.",
+            "what should i do if my code is not working": "If your redeem code is not working, please email playcodeagent@gmail.com with complete details.",
+            "how long does redemption take": "Redemption is instant. Once entered correctly, the balance is added immediately to your Google Play account.",
+            "can i use the code on multiple devices": "No. Once redeemed, the code is linked to a single Google Play account and cannot be reused on another device.",
+            "are refunds available": "No refunds are provided once a redeem code has been issued or used.",
+            "is my data safe on this website": "Yes, we prioritize user privacy and handle all data securely.",
+            "can i request multiple codes": "Yes, multiple requests can be made, but each code will be issued separately.",
+            "do codes work in all countries": "Redeem codes work only in regions supported by Google Play. Regional restrictions may apply.",
+            "what payment methods are accepted": "Payment methods depend on current availability and will be shared during the request process.",
+            "can i cancel my request": "Once a redeem code is generated, cancellation is not possible.",
+            "are there daily limits": "Yes, daily limits may apply depending on system availability.",
+            "will there be future updates": "Yes, the website is under continuous development and receives weekly updates to improve features and performance."
         };
 
-        // ==================== 50+ CHAT KNOWLEDGE ====================
-        const chatKnowledge = {
-            // Info command
-            "info": "SHOW_INFO_PANEL",
-            "information": "SHOW_INFO_PANEL",
-            "questions": "SHOW_INFO_PANEL",
-            "help info": "SHOW_INFO_PANEL",
-            "playcode info": "SHOW_INFO_PANEL",
-            "show info": "SHOW_INFO_PANEL",
-            "all questions": "SHOW_INFO_PANEL",
-
-            // Greetings (10)
-            "hello": "Hello! 👋 How can I help you today?",
-            "hi": "Hi there! 😊 Nice to meet you!",
-            "hey": "Hey! What's up? How can I assist you?",
-            "good morning": "Good morning! ☀️ Hope you're having a great day!",
-            "good afternoon": "Good afternoon! 😊 How's your day going?",
-            "good evening": "Good evening! 🌙 Hope you're having a pleasant evening!",
-            "good night": "Good night! 🌜 Sleep well and sweet dreams!",
-            "namaste": "Namaste! 🙏 How can I help you today?",
-            "greetings": "Greetings! 🤖 I'm here to assist you!",
-            "welcome": "Welcome! 🎉 How can I be of service?",
-
-            // How are you variations (5)
-            "how are you": "I'm doing great, thank you for asking! 😊 How about you?",
-            "how are you doing": "I'm doing well, thanks! Ready to help you!",
-            "how's it going": "It's going great! What can I do for you today?",
-            "how are things": "Things are good here! How about with you?",
-            "what's up": "Not much, just here to help you! What's up with you?",
-
-            // Thanks (5)
-            "thank you": "You're welcome! 😊 Happy to help!",
-            "thanks": "No problem! Let me know if you need anything else!",
-            "thank you so much": "You're very welcome! It's my pleasure!",
-            "thanks a lot": "My pleasure! 😊",
-            "appreciate it": "Glad I could help!",
-
-            // Goodbyes (5)
-            "bye": "Goodbye! 👋 Hope to chat with you again soon!",
-            "goodbye": "Take care! Have a great day! 😊",
-            "see you": "See you later! Looking forward to our next chat!",
-            "farewell": "Farewell! 👋",
-            "take care": "You too! Take care!",
-
-            // Help (5)
-            "help": "I can help you with:\n• All Playcode services (type 'info' to see all questions)\n• General questions and conversations\n• Web search for latest information\n• And much more!\n\nJust ask me anything!",
-            "what can you do": "I can:\n• Answer Playcode questions (type 'info')\n• Have friendly conversations\n• Search the web for current information\n• Help with general knowledge\n• Assist with various topics\n\nTry asking me anything!",
-            "features": "My features include:\n• Playcode service knowledge (type 'info')\n• Natural conversation\n• Web search capability\n• 2-second thinking delay\n• Smart query understanding",
-            "capabilities": "I can handle Playcode queries, general chat, and web searches for unknown topics.",
-            "options": "You can ask me about Playcode, chat casually, or get information on various topics.",
-
-            // Fun & Casual (10)
-            "joke": "Why don't scientists trust atoms? Because they make up everything! 😄",
-            "tell me a joke": "What do you call a fake noodle? An impasta! 🍝",
-            "fun fact": "Did you know? Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old!",
-            "interesting fact": "A group of flamingos is called a 'flamboyance'! 🦩",
-            "make me laugh": "Why did the scarecrow win an award? Because he was outstanding in his field! 😄",
-            "you're funny": "Haha, thanks! I try to keep things light and helpful! 😄",
-            "you're smart": "Thank you! 😊 I'm designed to be helpful and knowledgeable!",
-            "cool": "Thanks! 😎 I'm here to help!",
-            "awesome": "Glad you think so! 😊",
-            "amazing": "Thank you! I'm here to amaze and assist! ✨",
-
-            // Feelings & Mood (5)
-            "i'm bored": "Let's chat! Ask me anything - Playcode, general knowledge, or tell me about your day!",
-            "i'm sad": "I'm sorry to hear that. 😔 Remember, I'm here to chat anytime. Want to hear a joke or fun fact to cheer up?",
-            "i'm happy": "That's wonderful! 😊 Let's celebrate by learning something new!",
-            "i'm tired": "Take a break! I'm here for light conversation whenever you're ready.",
-            "i'm excited": "That's great! 😃 What has you excited?",
-
-            // Time & Date (5)
-            "what time is it": `The current time is ${new Date().toLocaleTimeString()}`,
-            "what day is today": `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
-            "what is the date": `Today's date is ${new Date().toLocaleDateString()}`,
-            "day today": `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long' })}`,
-            "month": `We're in ${new Date().toLocaleDateString('en-US', { month: 'long' })}`,
-
-            // Personal (5)
-            "who are you": "I'm Playcode Smart AI! 🤖 Your intelligent assistant for Playcode services and friendly chat!",
-            "who made you": "I was created to help users with Playcode services and general assistance!",
-            "your name": "I'm Playcode Smart AI Assistant! You can call me AI Assistant!",
-            "what are you": "I'm an AI chatbot designed to help with Playcode queries and general conversations!",
-            "are you human": "No, I'm an AI assistant! But I'm designed to be helpful and friendly! 🤖"
+        // YEH WALA PROMPT CHANGE KIYA HAI - AB YE KUCH BHI ANSWER KAREGA
+        const systemPrompt = {
+            "role": "system",
+            "content": `You are the official Playcode AI Assistant powered by Gemini Architecture. 
+            For Playcode-related questions, STRICTLY use this knowledge: ${JSON.stringify(playcodeKnowledge)}. 
+            For ALL OTHER questions (like general knowledge, coding, games, random chat, etc.), use your vast general knowledge to answer naturally and helpfully. Do not restrict yourself to Playcode data if the user asks something else.
+            Format responses professionally. Ensure any code uses markdown and math uses standard LaTeX delimiters ( $$ for block, $ for inline ).`
         };
 
-        // ==================== INFO PANEL FUNCTION - FIXED ====================
-        function showInfoPanel() {
-            let infoHTML = '<div class="info-container">';
-            infoHTML += '<div class="info-title">';
-            infoHTML += '<i class="fas fa-list-alt"></i>';
-            infoHTML += 'All Playcode Questions - Click Any Question';
-            infoHTML += '</div>';
-            infoHTML += '<div class="info-grid">';
-            
-            // Create buttons for all Playcode questions with staggered animations
-            Object.keys(playcodeKnowledge).forEach((key, index) => {
-                const questionData = playcodeKnowledge[key];
-                const displayName = questionData.displayName || key;
-                const delay = (index * 0.05) + 0.1;
-                
-                // Use backticks and escape properly
-                infoHTML += '<button class="info-question-btn" onclick="askQuestion(\'' + key.replace(/'/g, "\\'") + '\')" ';
-                infoHTML += 'style="animation-delay: ' + delay + 's">';
-                infoHTML += displayName;
-                infoHTML += '</button>';
-            });
-            
-            infoHTML += '</div>';
-            infoHTML += '<div class="info-footer">';
-            infoHTML += '<i class="fas fa-mouse-pointer"></i> Click any question above to get the answer instantly!';
-            infoHTML += '</div>';
-            infoHTML += '</div>';
-            
-            return '<strong>📋 All Playcode Questions</strong><br><br>' +
-                   'Here are all the Playcode questions I can answer. Click any question to get the answer!<br><br>' +
-                   infoHTML;
-        }
+        let chatHistory = [systemPrompt];
 
-        // ==================== REAL WEB SEARCH FUNCTION ====================
-        async function performWebSearch(query) {
-            showSearchStatus("Searching the web for information...");
-            
-            try {
-                // Using Wikipedia API for reliable information
-                const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.extract && data.extract.trim() !== '') {
-                        let answer = `<div class="web-search-badge">🔍 Web Search Result</div>`;
-                        answer += `<strong>${data.title || query}</strong><br><br>`;
-                        answer += `${data.extract}<br><br>`;
-                        
-                        if (data.content_urls && data.content_urls.desktop) {
-                            answer += `<em>Source: <a href="${data.content_urls.desktop.page}" target="_blank" style="color: #0ea5e9;">Wikipedia</a></em>`;
-                        } else {
-                            answer += `<em>Information from web search.</em>`;
-                        }
-                        
-                        return {
-                            answer: answer,
-                            found: true
-                        };
-                    }
-                }
-                
-                // Fallback to DuckDuckGo if Wikipedia fails
-                const duckResponse = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`);
-                
-                if (duckResponse.ok) {
-                    const duckData = await duckResponse.json();
-                    
-                    if (duckData.AbstractText && duckData.AbstractText.trim() !== '' && duckData.AbstractText !== query) {
-                        return {
-                            answer: `<div class="web-search-badge">🔍 Web Search Result</div>
-                                    <strong>${duckData.Heading || query}</strong><br><br>
-                                    ${duckData.AbstractText}<br><br>
-                                    <em>Information gathered from web search.</em>`,
-                            found: true
-                        };
-                    }
-                }
-                
-                // If no web search results found, provide a helpful response
-                return {
-                    answer: `<div class="web-search-badge">🔍 Information</div>
-                            <strong>${query}</strong><br><br>
-                            I searched for information about "${query}" but couldn't find specific results. Here's what I can tell you based on my knowledge:<br><br>
-                            • This appears to be a topic that requires specific or current information<br>
-                            • You might want to rephrase your question or ask something more specific<br>
-                            • For Playcode-related questions, type "info" to see all available questions<br><br>
-                            <em>Try asking about current events, technology, or specific topics for better results.</em>`,
-                    found: true
-                };
-                
-            } catch (error) {
-                console.log("Web search error:", error);
-                // Provide fallback information for common queries
-                const fallbackResponses = {
-                    "weather": "I searched for weather information. Weather conditions vary by location and time. For accurate current weather, check your local weather service or a weather website.",
-                    "news": "I looked for current news. News is constantly updating with developments in technology, global events, economic updates, and scientific discoveries.",
-                    "sports": "I searched for sports information. Sports news includes updates on various games, tournaments, player transfers, and match results worldwide.",
-                    "technology": "I found technology information. Technology refers to the application of scientific knowledge for practical purposes, especially in industry and everyday life.",
-                    "education": "I looked for education information. Education is the process of facilitating learning, or the acquisition of knowledge, skills, values, beliefs, and habits.",
-                    "health": "I searched for health information. Health topics include medical advice, fitness tips, nutrition information, and wellness practices.",
-                    "entertainment": "I found entertainment information. Entertainment includes movies, music, TV shows, celebrities, and cultural events.",
-                    "business": "I looked for business information. Business topics include economics, finance, markets, companies, and entrepreneurship.",
-                    "science": "I searched for science information. Science is the systematic study of the structure and behavior of the physical and natural world through observation and experiment."
-                };
-                
-                let fallbackAnswer = `<div class="web-search-badge">🔍 Information</div>
-                                     <strong>${query}</strong><br><br>`;
-                
-                // Check if query matches any fallback category
-                const lowerQuery = query.toLowerCase();
-                let foundFallback = false;
-                
-                for (const [category, response] of Object.entries(fallbackResponses)) {
-                    if (lowerQuery.includes(category)) {
-                        fallbackAnswer += response;
-                        foundFallback = true;
-                        break;
-                    }
-                }
-                
-                if (!foundFallback) {
-                    fallbackAnswer += `I searched for information about "${query}" but encountered a technical issue. Based on my knowledge, this appears to be a topic that requires specific or current information. You might want to:<br><br>
-                                    • Rephrase your question<br>
-                                    • Ask something more specific<br>
-                                    • Type "info" for Playcode questions<br><br>
-                                    <em>Try again or ask a different question.</em>`;
-                } else {
-                    fallbackAnswer += `<br><br><em>Based on available knowledge sources.</em>`;
-                }
-                
-                return {
-                    answer: fallbackAnswer,
-                    found: true
-                };
-            }
-        }
-
-        // ==================== SMART RESPONSE ENGINE (2 SECONDS) ====================
-        async function getAIResponse(userQuestion) {
-            const q = userQuestion.toLowerCase().trim();
-            
-            // Show enhanced thinking animation
-            showTypingIndicator();
-            
-            // Wait exactly 2 seconds
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            hideTypingIndicator();
-            
-            // 1. Check for INFO command (special case)
-            if (q === "info" || q === "information" || q === "questions" || 
-                q === "help info" || q === "playcode info" || q === "show info" || 
-                q === "all questions") {
-                return {
-                    answer: showInfoPanel(),
-                    type: 'info',
-                    searched: false
-                };
-            }
-            
-            // 2. Check chat knowledge (50+ responses) - INSTANT
-            if (chatKnowledge[q] && chatKnowledge[q] !== "SHOW_INFO_PANEL") {
-                return {
-                    answer: chatKnowledge[q],
-                    type: 'chat',
-                    searched: false
-                };
-            }
-            
-            // 3. Check Playcode knowledge (20 questions) - INSTANT
-            if (playcodeKnowledge[q]) {
-                const knowledge = playcodeKnowledge[q];
-                return {
-                    answer: `🎮 <strong>Playcode Information:</strong><br><br>${knowledge.answer}`,
-                    type: 'playcode',
-                    searched: false
-                };
-            }
-            
-            // 4. Check for partial Playcode matches - INSTANT
-            for (const [key, value] of Object.entries(playcodeKnowledge)) {
-                if (value.keywords.some(keyword => q.includes(keyword))) {
-                    return {
-                        answer: `🎮 <strong>Playcode Information:</strong><br><br>${value.answer}`,
-                        type: 'playcode',
-                        searched: false
-                    };
-                }
-            }
-            
-            // 5. AUTO WEB SEARCH for everything else (with 2-second delay)
-            try {
-                const searchResult = await performWebSearch(userQuestion);
-                return {
-                    answer: searchResult.answer,
-                    type: 'web',
-                    searched: true
-                };
-            } catch (error) {
-                return {
-                    answer: `🔍 <strong>Information Found</strong><br><br>
-                            Regarding "${userQuestion}"<br><br>
-                            I encountered an issue while searching. Based on my knowledge, here's what I can tell you:<br><br>
-                            • This topic requires specific or current information<br>
-                            • You might want to rephrase your question<br>
-                            • For Playcode-related questions, type "info"<br><br>
-                            <em>Try asking about current events or specific topics.</em>`,
-                    type: 'web',
-                    searched: true
-                };
-            }
-        }
-
-        // ==================== DOM ELEMENTS ====================
-        const chatMessages = document.getElementById('chatMessages');
+        // ==========================================
+        // UI & EVENT LISTENERS
+        // ==========================================
+        const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const searchStatus = document.getElementById('searchStatus');
-        const searchText = document.getElementById('searchText');
-        const clearChatBtn = document.getElementById('clearChatBtn');
-        const helpBtn = document.getElementById('helpBtn');
-        const infoBtn = document.getElementById('infoBtn');
-        const messagesWrapper = document.getElementById('messagesWrapper');
+        const sendBtn = document.getElementById('sendBtn');
 
-        function addMessage(content, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'message-user' : 'message-bot'}`;
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            messageDiv.innerHTML = `<div class="message-content">${content.replace(/\n/g, '<br>')}</div><div class="message-time">${time}</div>`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                return highlight.highlight(code, { language }).value;
+            },
+            breaks: true
+        });
 
-        function showTypingIndicator() {
-            typingIndicator.classList.add('active');
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            typingIndicator.classList.remove('active');
-        }
-
-        function showSearchStatus(status) {
-            searchText.textContent = status;
-            searchStatus.classList.add('active');
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function hideSearchStatus() {
-            searchStatus.classList.remove('active');
-        }
-
-        // ==================== QUESTION HANDLING ====================
-        async function askQuestion(question) {
-            userInput.value = question;
-            await sendMessage();
-        }
-
-        async function sendMessage() {
-            const question = userInput.value.trim();
-            if (question === '') return;
-
-            addMessage(question, true);
-            userInput.value = '';
-
-            try {
-                const response = await getAIResponse(question);
-                addMessage(response.answer);
-            } catch (error) {
-                addMessage("Sorry, I encountered an issue. Please try again!");
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+            if (textarea.value.trim().length > 0) {
+                sendBtn.classList.add('active');
+            } else {
+                sendBtn.classList.remove('active');
             }
         }
 
-        function handleKeyPress(event) { 
-            if (event.key === 'Enter') sendMessage(); 
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (userInput.value.trim().length > 0) {
+                    sendMessage();
+                }
+            }
+        });
+
+        function scrollToBottom() {
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
         }
 
         function clearChat() {
-            chatMessages.innerHTML = '';
-            addMessage(`🤖 <strong>Hello! How may I help you today?</strong><br><br>
-                       I'm your Playcode Smart AI Assistant. I can help you with:<br>
-                       • Playcode services and redeem codes<br>
-                       • General questions and conversations<br>
-                       • Latest information through web search<br><br>
-                       <strong>Type "info" to see all available Playcode questions!</strong>`);
+            chatContainer.innerHTML = '';
+            chatHistory = [systemPrompt];
+            appendBotMessage("Hello! I am Playcode AI + Gemini. How can I help you today?");
         }
 
-        function showHelp() {
-            addMessage(`💡 <strong>Enhanced AI Assistant</strong><br><br>
-                       <strong>New Features:</strong><br>
-                       • <strong>2-Second Responses:</strong> Faster thinking time<br>
-                       • <strong>Enhanced Animations:</strong> Beautiful visual feedback<br>
-                       • <strong>Type "info":</strong> See all Playcode questions in a grid<br>
-                       • <strong>Click Questions:</strong> Instant answers from grid<br>
-                       • <strong>Real Web Search:</strong> Actual search results from the web<br><br>
-                       <strong>Response Times:</strong><br>
-                       • Chat & Playcode: Instant (after 2-sec thinking)<br>
-                       • Web Search: 2 seconds with real results<br>
-                       • Info Panel: Instant display<br><br>
-                       <strong>Try typing "info" now to see the beautiful question grid!</strong>`);
-        }
-
-        function showInfo() {
-            askQuestion("info");
-        }
-
-        // ==================== INITIALIZATION ====================
-        function initChatbot() {
-            sendButton.addEventListener('click', sendMessage);
-            clearChatBtn.addEventListener('click', clearChat);
-            helpBtn.addEventListener('click', showHelp);
-            infoBtn.addEventListener('click', showInfo);
-            userInput.focus();
-            
-            // Make functions globally available
-            window.askQuestion = askQuestion;
-            window.handleKeyPress = handleKeyPress;
-            
-            // Add visual feedback on hover (PC only)
-            if (window.matchMedia("(min-width: 769px)").matches) {
-                document.querySelectorAll('button').forEach(btn => {
-                    btn.addEventListener('mouseenter', function() {
-                        this.style.transform = 'translateY(-2px)';
-                    });
-                    btn.addEventListener('mouseleave', function() {
-                        this.style.transform = 'translateY(0)';
-                    });
-                });
-            }
-            
-            // Ensure send button is always visible on mobile
-            function ensureSendButtonVisible() {
-                if (window.matchMedia("(max-width: 768px)").matches) {
-                    sendButton.style.display = 'flex';
-                    sendButton.style.visibility = 'visible';
-                    sendButton.style.opacity = '1';
-                }
-            }
-            
-            // Check regularly on mobile
-            if (window.matchMedia("(max-width: 768px)").matches) {
-                setInterval(ensureSendButtonVisible, 500);
-                ensureSendButtonVisible();
+        function renderMarkdownAndMath(element, text) {
+            try {
+                const rawHtml = marked.parse(text);
+                const safeHtml = DOMPurify.sanitize(rawHtml);
+                element.innerHTML = safeHtml;
                 
-                // Make entire chat area scrollable
-                document.body.style.overflow = 'auto';
-                messagesWrapper.style.overflow = 'auto';
-                messagesWrapper.style.webkitOverflowScrolling = 'touch';
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\[", right: "\\]", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\(", right: "\\)", display: false}
+                    ],
+                    throwOnError: false
+                });
+            } catch (err) {
+                element.innerText = text; 
             }
-            
-            // Focus input when clicking anywhere on chat
-            chatMessages.addEventListener('click', function() {
-                userInput.focus();
-            });
-            
-            // Handle keyboard appearance on mobile
-            let originalViewportHeight = window.innerHeight;
-            window.addEventListener('resize', function() {
-                if (window.innerHeight < originalViewportHeight * 0.7) {
-                    // Keyboard is open
-                    ensureSendButtonVisible();
-                }
-                // Scroll to bottom when keyboard appears
-                setTimeout(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 100);
-            });
-            
-            // Add full screen scroll capability
-            function enableFullScreenScroll() {
-                document.body.classList.add('full-screen-scroll');
-                if (window.matchMedia("(max-width: 768px)").matches) {
-                    // On mobile, make entire page scrollable
-                    document.querySelector('.chat-container').style.height = 'auto';
-                    document.querySelector('.chat-container').style.minHeight = '100vh';
-                    messagesWrapper.style.height = 'auto';
-                    messagesWrapper.style.minHeight = 'calc(100vh - 120px)';
-                    messagesWrapper.style.overflow = 'visible';
-                }
-            }
-            
-            enableFullScreenScroll();
         }
 
-        window.onload = initChatbot;
+        function appendUserMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'message-row user';
+            row.innerHTML = `<div class="message-bubble">${DOMPurify.sanitize(text).replace(/\n/g, '<br>')}</div>`;
+            chatContainer.appendChild(row);
+            scrollToBottom();
+        }
+
+        function createBotMessageNode() {
+            const row = document.createElement('div');
+            row.className = 'message-row bot';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'bot-avatar';
+            avatar.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20.25 10.75L21.5 7.5L24.75 6.25L21.5 5L20.25 1.75L19 5L15.75 6.25L19 7.5L20.25 10.75ZM11.75 11.25L9 5L6.25 11.25L0 14L6.25 16.75L9 23L11.75 16.75L18 14L11.75 11.25ZM20.25 17.25L19 20.5L15.75 21.75L19 23L20.25 26.25L21.5 23L24.75 21.75L21.5 20.5L20.25 17.25Z"/></svg>`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            
+            bubble.innerHTML = `
+                <div class="custom-loader-container">
+                    <div class="rotating-sparkle"></div>
+                </div>
+            `;
+
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+            chatContainer.appendChild(row);
+            scrollToBottom();
+
+            return bubble;
+        }
+
+        function appendBotMessage(text) {
+            const bubble = createBotMessageNode();
+            renderMarkdownAndMath(bubble, text);
+        }
+
+        // ==========================================
+        // API CALL & 3 SEC DELAY LOGIC
+        // ==========================================
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            if (API_KEY === "YOUR_SAMBANOVA_API_KEY_HERE" || !API_KEY) {
+                appendBotMessage("<span class='error-msg'>Developer Alert: API_KEY update nahi ki gayi hai script me.</span>");
+                return;
+            }
+
+            userInput.value = '';
+            autoResize(userInput);
+            userInput.disabled = true;
+
+            appendUserMessage(text);
+            chatHistory.push({ "role": "user", "content": text });
+            
+            const botBubbleNode = createBotMessageNode();
+
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stream: true,
+                        model: "gemma-3-12b-it",
+                        messages: chatHistory
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let fullBotResponse = "";
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); 
+
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            if (dataStr === '[DONE]') break;
+                            
+                            try {
+                                const data = JSON.parse(dataStr);
+                                const delta = data.choices[0].delta.content;
+                                if (delta) {
+                                    fullBotResponse += delta;
+                                    renderMarkdownAndMath(botBubbleNode, fullBotResponse);
+                                    scrollToBottom();
+                                }
+                            } catch (err) {
+                                console.error("Parsing stream chunk error:", err);
+                            }
+                        }
+                    }
+                }
+
+                chatHistory.push({ "role": "assistant", "content": fullBotResponse });
+
+            } catch (error) {
+                console.error(error);
+                botBubbleNode.innerHTML = `<span class='error-msg'>Connection Failed: ${error.message}</span>`;
+                chatHistory.pop(); 
+            } finally {
+                userInput.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        window.onload = () => clearChat();
     </script>
 </body>
 </html>
